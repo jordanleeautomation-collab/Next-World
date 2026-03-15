@@ -1,0 +1,7 @@
+<svg viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- NW logo mark rendered large as hero background -->
+  <!-- N -->
+  <path d="M0 900V0h200v500L500 0h200v900h-200V400L200 900z" fill="rgba(255,255,255,0.06)"/>
+  <!-- W -->
+  <path d="M800 0L925 0 1000 600 1075 0 1200 0 1275 600 1350 0 1440 0 1325 900 1200 900 1125 350 1050 900 925 900z" fill="rgba(255,255,255,0.04)"/>
+</svg>
