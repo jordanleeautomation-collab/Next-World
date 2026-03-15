@@ -42,6 +42,265 @@
   --highlight-text-color: white;
 }
 
+/* ── Preloader ── */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #030303;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0, 1), visibility 0.5s ease;
+}
+.preloader.done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Canvas for particle effects */
+.preloader-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* Center container — offset down to compensate for reflection/text below */
+.preloader-center {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 5;
+  margin-bottom: -80px;
+}
+
+/* Logo wrapper */
+.preloader-logo-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+/* Main logo — builds from center outward via diamond→rectangle clip-path */
+.preloader-logo {
+  width: 240px;
+  height: auto;
+  display: block;
+  z-index: 2;
+  position: relative;
+  clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+  animation: logoBuild 0.5s ease-in-out forwards;
+}
+@keyframes logoBuild {
+  0%   { clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%); filter: brightness(1.2); }
+  50%  { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); filter: brightness(1.05); }
+  100% { clip-path: polygon(-5% -5%, 105% -5%, 105% 105%, -5% 105%); filter: brightness(1); }
+}
+
+/* Subtle flash overlay */
+.preloader-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  background: radial-gradient(circle at 50% 50%, rgba(12,196,129,0.15) 0%, transparent 45%);
+  opacity: 0;
+  pointer-events: none;
+  animation: flashPulse 0.5s ease-in-out forwards;
+}
+@keyframes flashPulse {
+  0%    { opacity: 0; }
+  5%    { opacity: 0.4; }
+  20%   { opacity: 0; }
+  50%   { opacity: 0.3; }
+  65%   { opacity: 0; }
+  85%   { opacity: 0.5; }
+  95%   { opacity: 0; }
+  100%  { opacity: 0; }
+}
+
+/* Glow burst — fires when final stripe completes */
+.preloader-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 600px;
+  height: 600px;
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(12,196,129,0.35) 0%,
+    rgba(12,196,129,0.12) 30%,
+    rgba(12,196,129,0.03) 60%,
+    transparent 80%
+  );
+  z-index: 1;
+  animation: glowBurst 0.5s cubic-bezier(0, 0.7, 0.3, 1) 0.3s forwards;
+}
+@keyframes glowBurst {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  50%  { transform: translate(-50%, -50%) scale(1.3); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+}
+
+/* Ambient glow pulse */
+.preloader-glow-ambient {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 700px;
+  height: 700px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(12,196,129,0.06) 0%, transparent 70%);
+  z-index: 0;
+  opacity: 0;
+  animation: ambientPulse 1s ease-in-out 0.35s infinite;
+}
+@keyframes ambientPulse {
+  0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.95); }
+  50%      { opacity: 0.5; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* Radial rings — fire after logo completes */
+.preloader-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  border: 1px solid rgba(12,196,129,0.12);
+  transform: translate(-50%, -50%) scale(0);
+  z-index: 1;
+}
+.preloader-ring:nth-child(1) {
+  width: 250px; height: 250px;
+  animation: ringExpand 0.6s cubic-bezier(0, 0.7, 0.3, 1) 0.3s forwards;
+}
+.preloader-ring:nth-child(2) {
+  width: 500px; height: 500px;
+  animation: ringExpand 0.6s cubic-bezier(0, 0.7, 0.3, 1) 0.4s forwards;
+}
+.preloader-ring:nth-child(3) {
+  width: 900px; height: 900px;
+  animation: ringExpand 0.6s cubic-bezier(0, 0.7, 0.3, 1) 0.5s forwards;
+}
+@keyframes ringExpand {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 0.5; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
+/* Horizontal speed lines */
+.preloader-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  opacity: 0;
+  animation: linesFlash 0.3s ease 0.3s forwards;
+}
+@keyframes linesFlash {
+  0%  { opacity: 0; }
+  50% { opacity: 1; }
+  100%{ opacity: 0; }
+}
+.preloader-lines::before,
+.preloader-lines::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(12,196,129,0.6), transparent);
+}
+.preloader-lines::before {
+  right: 50%; width: 0;
+  animation: lineShootLeft 0.35s ease-out 0.3s forwards;
+}
+.preloader-lines::after {
+  left: 50%; width: 0;
+  animation: lineShootRight 0.35s ease-out 0.3s forwards;
+}
+@keyframes lineShootLeft {
+  0%   { width: 0; opacity: 1; }
+  100% { width: 50vw; opacity: 0; }
+}
+@keyframes lineShootRight {
+  0%   { width: 0; opacity: 1; }
+  100% { width: 50vw; opacity: 0; }
+}
+
+/* Floor line */
+.preloader-floor {
+  width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(12,196,129,0.35), rgba(12,196,129,0.5), rgba(12,196,129,0.35), transparent);
+  margin-top: 2px;
+  animation: floorSlam 0.3s cubic-bezier(0, 0.7, 0.3, 1) 0.35s forwards;
+  z-index: 2;
+}
+@keyframes floorSlam {
+  0%   { width: 0; opacity: 0; }
+  100% { width: min(550px, 80vw); opacity: 1; }
+}
+
+/* Reflection */
+.preloader-reflection {
+  width: 240px;
+  height: auto;
+  transform: scaleY(-1);
+  opacity: 0;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 45%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 45%);
+  filter: blur(3px);
+  margin-top: -2px;
+  animation: reflectionIn 0.3s ease 0.35s forwards;
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+@keyframes reflectionIn {
+  0%   { opacity: 0; }
+  100% { opacity: 0.15; }
+}
+
+/* Brand text */
+.preloader-text {
+  margin-top: 2rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+  font-family: system-ui, -apple-system, sans-serif;
+  opacity: 0;
+  z-index: 5;
+  animation: textFade 0.3s ease 0.4s forwards;
+}
+@keyframes textFade {
+  0%   { opacity: 0; transform: translateY(5px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Scan line */
+.preloader-scan {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 10%, rgba(12,196,129,0.35) 50%, transparent 90%);
+  box-shadow: 0 0 15px 3px rgba(12,196,129,0.1);
+  z-index: 10;
+  opacity: 0;
+  animation: scanDown 0.4s ease-in-out 0.45s forwards;
+}
+@keyframes scanDown {
+  0%   { top: 35%; opacity: 0; }
+  10%  { opacity: 1; }
+  100% { top: 65%; opacity: 0; }
+}
+
 .nav_component {
   padding-top: 0;
   padding-bottom: 0;
@@ -118,10 +377,8 @@
 
 /* Fix grid background for process section */
 .section_process {
-  background-image:
-    radial-gradient(circle, rgba(12, 196, 129, 0.07) 1px, transparent 1px) !important;
-  background-size: 32px 32px !important;
-  background-position: center center !important;
+  background-image: none !important;
+  background-color: #060807 !important;
 }
 
 /* Remove italic from process heading */
@@ -140,8 +397,8 @@
 
 .process-hz_card {
   position: relative;
-  background: linear-gradient(160deg, rgba(18, 20, 19, 0.9) 0%, rgba(8, 10, 9, 0.95) 100%);
-  border: 1px solid rgba(237, 236, 228, 0.06);
+  background: linear-gradient(160deg, rgba(14, 16, 15, 0.95) 0%, rgba(6, 8, 7, 0.98) 100%);
+  border: 1px solid rgba(237, 236, 228, 0.04);
   border-radius: 1.25rem;
   padding: 2.5rem 2rem;
   display: flex;
@@ -149,6 +406,7 @@
   gap: 1.25rem;
   transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   overflow: hidden;
+  box-shadow: 0 0 80px rgba(10, 191, 172, 0.04), 0 0 30px rgba(10, 191, 172, 0.02);
 }
 
 .process-hz_card::before {
@@ -157,15 +415,14 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, rgba(12, 196, 129, 0.3) 50%, transparent 100%);
-  opacity: 0;
-  transition: opacity 0.5s ease;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(10, 191, 172, 0.2) 50%, transparent 100%);
+  opacity: 1;
 }
 
 .process-hz_card:hover {
-  border-color: rgba(12, 196, 129, 0.15);
-  box-shadow: 0 0 60px rgba(12, 196, 129, 0.08), 0 20px 40px rgba(0, 0, 0, 0.3);
+  border-color: rgba(10, 191, 172, 0.12);
+  box-shadow: 0 0 100px rgba(10, 191, 172, 0.08), 0 0 40px rgba(10, 191, 172, 0.04), 0 20px 40px rgba(0, 0, 0, 0.4);
   transform: translateY(-8px);
 }
 
@@ -1145,68 +1402,59 @@
   position: relative;
   overflow: hidden;
   padding-bottom: 0;
+  background-color: #060807 !important;
+  background-image: none !important;
 }
 .section_stats {
   border-top: none !important;
   padding-top: 2rem;
   position: relative;
+  background-color: #060807 !important;
+  background-image: none !important;
 }
 .section_stats .ticker-gradient {
   display: none;
 }
-/* AI Grid background spanning testimonials + stats */
+/* Testimonials background — square grid, no ambient glow */
 .ai-grid-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   background:
-    repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(255,255,255,0.04) 59px, rgba(255,255,255,0.04) 60px),
-    repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(255,255,255,0.04) 59px, rgba(255,255,255,0.04) 60px),
-    radial-gradient(ellipse at 50% 50%, rgba(12,196,129,0.05) 0%, transparent 70%);
-  mask-image: radial-gradient(ellipse 100% 90% at 50% 50%, black 40%, transparent 80%);
-  -webkit-mask-image: radial-gradient(ellipse 100% 90% at 50% 50%, black 40%, transparent 80%);
+    repeating-linear-gradient(0deg, transparent, transparent 44px, rgba(255,255,255,0.08) 44px, rgba(255,255,255,0.08) 45px),
+    repeating-linear-gradient(90deg, transparent, transparent 44px, rgba(255,255,255,0.08) 44px, rgba(255,255,255,0.08) 45px);
+  mask-image: radial-gradient(ellipse 110% 100% at 50% 50%, black 40%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 110% 100% at 50% 50%, black 40%, transparent 80%);
 }
 .ai-grid-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 20%, rgba(12,196,129,0.15) 50%, transparent 80%);
-  animation: scanLine 8s ease-in-out infinite;
-}
-@keyframes scanLine {
-  0%, 100% { top: 0; opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
+  display: none;
 }
 .ai-grid-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(circle 2px at 20% 30%, rgba(12,196,129,0.2) 0%, transparent 100%),
-    radial-gradient(circle 2px at 50% 60%, rgba(12,196,129,0.15) 0%, transparent 100%),
-    radial-gradient(circle 2px at 75% 25%, rgba(12,196,129,0.2) 0%, transparent 100%),
-    radial-gradient(circle 2px at 35% 75%, rgba(12,196,129,0.12) 0%, transparent 100%),
-    radial-gradient(circle 2px at 85% 70%, rgba(12,196,129,0.18) 0%, transparent 100%),
-    radial-gradient(circle 1.5px at 10% 55%, rgba(12,196,129,0.15) 0%, transparent 100%),
-    radial-gradient(circle 1.5px at 60% 15%, rgba(12,196,129,0.12) 0%, transparent 100%),
-    radial-gradient(circle 1.5px at 90% 45%, rgba(12,196,129,0.15) 0%, transparent 100%);
-  animation: nodesPulse 4s ease-in-out infinite alternate;
-}
-@keyframes nodesPulse {
-  0% { opacity: 0.5; }
-  100% { opacity: 1; }
+  display: none;
+  pointer-events: none;
+  filter: blur(40px);
 }
 
 .test-v2_layout {
   display: flex;
   gap: 4rem;
   align-items: center;
+  position: relative;
+}
+
+.test-v2_layout::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 70%;
+  transform: translate(-50%, -50%);
+  width: 85%;
+  height: 80%;
+  background: radial-gradient(ellipse at center, rgba(10, 191, 172, 0.4) 0%, rgba(10, 191, 172, 0.15) 30%, rgba(10, 191, 172, 0.05) 50%, transparent 70%);
+  filter: blur(90px);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .test-v2_left {
@@ -1235,10 +1483,18 @@
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
 }
 
+.test-v2_right::before {
+  display: none;
+}
+
+.test-v2_right::after {
+  display: none;
+}
+
 .test-v2_scroll-track {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
   animation: testimonialScroll 30s linear infinite;
 }
 
@@ -1248,15 +1504,17 @@
 }
 
 .test-v2_card {
-  background: linear-gradient(135deg, #151817 0%, #0d0f0e 100%);
-  border: 1px solid rgba(237, 236, 228, 0.06);
+  background: #0a0c0b;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 1rem;
   padding: 2rem;
-  transition: border-color 0.3s ease;
+  transition: all 0.4s ease;
+  box-shadow: none;
 }
 
 .test-v2_card:hover {
-  border-color: rgba(12, 196, 129, 0.15);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
 }
 
 .test-v2_card--half {
@@ -1710,7 +1968,29 @@
 
 </style>
 
-</head><body><div class="bg-grain"></div><div class="page-wrapper"><div data-w-id="396176c6-906a-9f74-c6d0-8a4663dfdea9" data-animation="default" data-collapse="medium" data-duration="400" data-easing="ease" data-easing2="ease" role="banner" class="nav_component w-nav"><div class="padding-global"><div class="nav_container"><a href="/" aria-current="page" class="nav_brand w-nav-brand w--current"><div class="nav_logo w-embed"><img src="./NW LOGO.png" alt="Next World Logo" style="height:100px;width:auto;"/></div></a><nav role="navigation" class="nav_menu w-nav-menu"><a href="/services" class="nav_menu_link w-nav-link">Services</a><a href="/team" class="nav_menu_link w-nav-link">Team</a><a href="https://finsweet.com" class="nav_menu_link hide w-nav-link">Team</a><a data-w-id="69bc0ba5-42f1-5ac9-cbcc-1a83a676390c" href="#" class="button is-icon-small nav-btn w-inline-block"><div>get in touch</div><div class="icon-1x1-xsmall w-embed"><svg width="auto" height="auto" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+</head><body>
+
+<div class="preloader" id="preloader">
+  <canvas class="preloader-canvas" id="preloaderCanvas"></canvas>
+  <div class="preloader-lines"></div>
+  <div class="preloader-ring"></div>
+  <div class="preloader-ring"></div>
+  <div class="preloader-ring"></div>
+  <div class="preloader-scan"></div>
+  <div class="preloader-glow"></div>
+  <div class="preloader-glow-ambient"></div>
+  <div class="preloader-flash"></div>
+  <div class="preloader-center">
+    <div class="preloader-logo-wrap">
+      <img src="./NW LOGO.png" alt="Next World" class="preloader-logo"/>
+    </div>
+    <div class="preloader-floor"></div>
+    <img src="./NW LOGO.png" alt="" class="preloader-reflection"/>
+    <div class="preloader-text">Next World</div>
+  </div>
+</div>
+
+<div class="bg-grain"></div><div class="page-wrapper"><div data-w-id="396176c6-906a-9f74-c6d0-8a4663dfdea9" data-animation="default" data-collapse="medium" data-duration="400" data-easing="ease" data-easing2="ease" role="banner" class="nav_component w-nav"><div class="padding-global"><div class="nav_container"><a href="/" aria-current="page" class="nav_brand w-nav-brand w--current"><div class="nav_logo w-embed"><img src="./NW LOGO.png" alt="Next World Logo" style="height:100px;width:auto;"/></div></a><nav role="navigation" class="nav_menu w-nav-menu"><a href="/services" class="nav_menu_link w-nav-link">Services</a><a href="/team" class="nav_menu_link w-nav-link">Team</a><a href="https://finsweet.com" class="nav_menu_link hide w-nav-link">Team</a><a data-w-id="69bc0ba5-42f1-5ac9-cbcc-1a83a676390c" href="#" class="button is-icon-small nav-btn w-inline-block"><div>get in touch</div><div class="icon-1x1-xsmall w-embed"><svg width="auto" height="auto" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M0.666687 8.6665L4.66669 4.6665L0.666687 0.666504" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
 </svg></div></a></nav><div class="nav_button w-nav-button"><div data-is-ix2-target="1" class="menu-lottie" data-w-id="f5469860-1b25-4415-046e-f65008a6ee3d" data-animation-type="lottie" data-src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/69580c03847ed750f6f5bf52_menu-ci.json" data-loop="0" data-direction="1" data-autoplay="0" data-renderer="svg" data-default-duration="0" data-duration="1.6166666666666667" data-ix2-initial-state="0"></div></div></div></div></div><div class="global-styles w-embed"><style>
 
@@ -1921,7 +2201,7 @@ select {
             <div class="mesh-ball mesh-ball-3"></div>
             <div class="bg-glow-static"></div>
           </div>
-          <div class="padding-global padding-section-large home-hero"><div class="container-large"><div class="hero"><div class="hero_content"><h1 data-w-id="f63cbc6a-01b0-c56e-95d4-065080c06ed6" style="opacity:0" class="h1-text-gradient">We don&#x27;t just talk AI. We deliver it.</h1><div data-w-id="8716bf85-fecd-32d4-d48b-33aeca32dd36" style="opacity:0" class="hero_subtitle"><p class="hero_subtitle-txt">We help companies identify AI opportunities that will actually transform their business, then we build it, deploy it, and train your team to use it.</p></div><div data-w-id="1d9166de-bbb9-41e8-0569-d812d4e9ee11" style="opacity:0" class="hero_logos"><div class="eyebrow-text">From next-gen startups to established enterprises:</div><div class="hero_logo-ticker"><div class="hero_logo-ticker_track"><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/696a790655dceaa830a60843_roosters.svg" loading="lazy" alt="Sydney Roosters logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03dbd8c8d94aaf995b6_barkbox-logo.webp" loading="lazy" alt="BarkBox logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c16eded30187d336bcd1_milwaukee-bucks-logo.webp" loading="lazy" alt="Milwaukee Bucks logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d37faf68620e73bd7_citation-logo.webp" loading="lazy" alt="Citation logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d9943a24358916f4a_dentops-logo.webp" loading="lazy" alt="DentOps logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03deade75d97387b263_asmuss-logo.webp" loading="lazy" alt="Asmuss logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/696a790655dceaa830a60843_roosters.svg" loading="lazy" alt="Sydney Roosters logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03dbd8c8d94aaf995b6_barkbox-logo.webp" loading="lazy" alt="BarkBox logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c16eded30187d336bcd1_milwaukee-bucks-logo.webp" loading="lazy" alt="Milwaukee Bucks logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d37faf68620e73bd7_citation-logo.webp" loading="lazy" alt="Citation logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d9943a24358916f4a_dentops-logo.webp" loading="lazy" alt="DentOps logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03deade75d97387b263_asmuss-logo.webp" loading="lazy" alt="Asmuss logo" class="hero_logo"/></div></div><div class="ticker-gradient hero"></div><div class="ticker-gradient right hero-right"></div></div></div></div></div></div></div><div lumious-ticker-speed-mobile="10" lumious-ticker="true" lumious-ticker-speed="50" lumious-ticker-pause="false" data-w-id="317fbfb2-7a35-f82b-f4a6-bd855abc3ff7" style="opacity:0" class="mobile-logo-ticker"><div lumious-ticker-content="true" class="hero_logo-row"><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/696a790655dceaa830a60843_roosters.svg" loading="eager" alt="Sydney Roosters logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03dbd8c8d94aaf995b6_barkbox-logo.webp" loading="eager" alt="BarkBox logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c16eded30187d336bcd1_milwaukee-bucks-logo.webp" loading="eager" alt="Milwaukee Bucks logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d37faf68620e73bd7_citation-logo.webp" loading="eager" alt="Citation logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d9943a24358916f4a_dentops-logo.webp" loading="eager" alt="DentOps logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03deade75d97387b263_asmuss-logo.webp" loading="eager" alt="Asmuss logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/696a790655dceaa830a60843_roosters.svg" loading="eager" alt="Sydney Roosters logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03dbd8c8d94aaf995b6_barkbox-logo.webp" loading="eager" alt="BarkBox logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c16eded30187d336bcd1_milwaukee-bucks-logo.webp" loading="eager" alt="Milwaukee Bucks logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d37faf68620e73bd7_citation-logo.webp" loading="eager" alt="Citation logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d9943a24358916f4a_dentops-logo.webp" loading="eager" alt="DentOps logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03deade75d97387b263_asmuss-logo.webp" loading="eager" alt="Asmuss logo" class="hero_logo"/></div></div><div class="ticker-gradient hero"></div><div class="ticker-gradient right hero-right"></div></div></section><section class="section_services"><div class="padding-global padding-section-large"><div class="container-large"><div class="services_layout"><div class="services_left"><h2 class="services_heading">Our Services</h2><div class="services_carousel" id="servicesCarousel"><div class="services_track" id="servicesTrack"><div class="service_item is-active" data-index="0" data-desc="We audit your workflows, data, and team structure to find the 5% of AI opportunities worth building, so you invest in what actually moves the needle."><div class="service_arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div><span class="service_item-text">AI Strategy</span></div><div class="service_item" data-index="1" data-desc="We build custom AI agents, automations, and tools that integrate directly into your existing systems, designed to work from day one."><div class="service_arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div><span class="service_item-text">Custom AI Development</span></div><div class="service_item" data-index="2" data-desc="We don't hand off and vanish. We train your people, monitor adoption, and refine until AI runs smoothly without us."><div class="service_arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div><span class="service_item-text">Training & Adoption</span></div><div class="service_item" data-index="3" data-desc="We identify repetitive tasks eating your team's time and replace them with intelligent automations that scale."><div class="service_arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div><span class="service_item-text">Workflow Automation</span></div><div class="service_item" data-index="4" data-desc="We turn your messy data into clear dashboards and AI-powered insights that help your team make faster, smarter decisions."><div class="service_arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div><span class="service_item-text">Data & Analytics</span></div><div class="service_item" data-index="5" data-desc="Purpose-built AI agents that handle specific business functions, from customer support to content creation to internal ops."><div class="service_arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div><span class="service_item-text">AI Agent Development</span></div></div></div></div><div class="services_right"><div class="services_description" id="servicesDesc">We audit your workflows, data, and team structure to find the 5% of AI opportunities worth building, so you invest in what actually moves the needle.</div><a href="/services" class="services_cta"><span>Become a Client</span><div class="services_cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></div></a><div class="services_counter"><span id="servicesCounter">01</span> / 06</div></div></div></div></div></section><section class="section_process"><div class="padding-global padding-section-large"><div class="container-large"><div class="flex-center"><div data-w-id="66c06ce1-dd09-0063-9768-dc8e148a732f" class="line-logo"><div data-w-id="f9327463-ea45-a91d-da63-1c2814a51f3c" class="gradient-line"></div><img src="./NW LOGO.png" alt="Next World" style="height:48px;width:auto;flex-shrink:0;"/><div data-w-id="4051c63f-7109-7662-3b31-5f419e27b69d" class="gradient-line flipped"></div></div><h2 class="text-gradient">Our days consist of three things...</h2></div><div class="process-hz"><div class="process-hz_card" data-step="1"><div class="process-hz_num">01</div><div class="process-hz_icon"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="30" cy="30" r="18" opacity="0.3"/><circle cx="30" cy="20" r="12" opacity="0.5"/><circle cx="22" cy="30" r="12" opacity="0.4"/><circle cx="38" cy="30" r="12" opacity="0.4"/><circle cx="30" cy="30" r="6" opacity="0.7"/></svg></div><h3 class="process-hz_title">Identify</h3><p class="process-hz_desc">We start by understanding how your team actually works, where time is lost, what slows things down. We find the 5% of opportunities worth building.</p><div class="process-hz_line"></div></div><div class="process-hz_card" data-step="2"><div class="process-hz_num">02</div><div class="process-hz_icon"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M30 10 L50 22 L50 38 L30 50 L10 38 L10 22Z" opacity="0.3"/><path d="M30 16 L46 26 L46 36 L30 46 L14 36 L14 26Z" opacity="0.5"/><path d="M30 22 L42 30 L42 34 L30 42 L18 34 L18 30Z" opacity="0.7"/></svg></div><h3 class="process-hz_title">Develop</h3><p class="process-hz_desc">We move quickly and build. Solutions that fit into your existing systems, built the right way, working exactly as they should from day one.</p><div class="process-hz_line"></div></div><div class="process-hz_card" data-step="3"><div class="process-hz_num">03</div><div class="process-hz_icon"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M15 42 L30 18 L45 42Z" opacity="0.5"/><circle cx="30" cy="35" r="4" opacity="0.7"/></svg></div><h3 class="process-hz_title">Adopt</h3><p class="process-hz_desc">We work side by side with your teams, training, fine-tuning, until it's not a project anymore. It's just how work gets done.</p></div></div><div class="flex-center margin-top margin-huge"><a href="#" class="button is-icon w-inline-block"><div>get in touch</div><div class="icon-1x1-xsmall w-embed"><svg width="auto" height="auto" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.666687 8.6665L4.66669 4.6665L0.666687 0.666504" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/></svg></div></a></div></div></div></section><section class="section_about"><div class="padding-global padding-section-large"><div class="container-large"><h2 class="about_heading text-gradient">Building AI before it was obvious.</h2><p class="about_intro text-size-large">Jordan was shipping AI-powered products before most developers had heard of ChatGPT. What started as a curiosity became a craft, and a track record of building software that actually works.</p><div class="about_profile"><div class="about_left-col"><div class="about_img-wrap"><img src="./jordan-lee.png" loading="lazy" alt="Jordan Lee" class="about_img"/></div><div class="about_works-wrap"><div class="about_works-container"><div class="about_works-icon"><div class="about_works-folder"><img src="./NW LOGO.png" alt="NW Logo" style="position:relative;z-index:4;width:28px;height:auto;opacity:0.5;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3))" /></div></div><div class="about_socials-tray"><a href="https://www.youtube.com/@jorddanlee" target="_blank" class="about_social-icon about_social--yt"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a><a href="https://www.linkedin.com/in/jorddanlee/" target="_blank" class="about_social-icon about_social--li"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a><a href="https://x.com/jorddanlee" target="_blank" class="about_social-icon about_social--x"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></div></div><span class="about_works-label">Socials</span></div></div><div class="about_profile-info"><div class="about_profile-header"><p class="about_name">Jordan Lee</p><p class="about_role">Co-Founder / Builder</p></div><div class="about_status"><span class="about_status-time"><span id="statusTime"></span> [TOR]</span><span class="about_status-msg"><span class="about_status-dot"></span>Waiting for your message</span></div><p class="text-size-medium">A self-taught developer and AI content creator, Jordan builds and ships AI products from scratch, and documents every step live on YouTube. He brings full transparency to what it actually takes to turn AI ideas into working software people pay for.</p><p class="text-size-medium">Jordan has shipped multiple production AI applications: full SaaS platforms, AI agent suites, and native desktop apps. He brings hands-on technical execution to every engagement, with a bias toward shipping fast and iterating on what's real.</p><div class="trusted_inline"><div class="trusted_label" style="text-align:left;margin-bottom:0.75rem;">Trusted By &amp; Featured In</div><div class="trusted_ticker"><div class="trusted_track"><span class="trusted_logo-text">n8n</span><span class="trusted_logo-text">skool</span><span class="trusted_logo-text trusted_logo-text--lg">APIFY</span><span class="trusted_logo-text">HOSTINGER</span><span class="trusted_logo-text">n8n</span><span class="trusted_logo-text">skool</span><span class="trusted_logo-text trusted_logo-text--lg">APIFY</span><span class="trusted_logo-text">HOSTINGER</span><span class="trusted_logo-text">n8n</span><span class="trusted_logo-text">skool</span><span class="trusted_logo-text trusted_logo-text--lg">APIFY</span><span class="trusted_logo-text">HOSTINGER</span><span class="trusted_logo-text">n8n</span><span class="trusted_logo-text">skool</span><span class="trusted_logo-text trusted_logo-text--lg">APIFY</span><span class="trusted_logo-text">HOSTINGER</span></div></div></div></div></div></div></div></section><section class="section_testimonials-v2"><div class="ai-grid-bg"></div><div class="padding-global padding-section-large"><div class="container-large"><div class="test-v2_layout"><div class="test-v2_left"><h2 class="test-v2_heading"><span class="text-style-muted">Hear it </span><strong>from our clients</strong></h2><a href="#" data-w-id="727ef4ca-8fcd-03b8-3ebb-6e285e5757e0" class="services_cta" style="margin-top: 2rem;"><span>Hear more stories</span><div class="services_cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></div></a></div><div class="test-v2_right"><div class="test-v2_scroll-track"><div class="test-v2_card test-v2_card--half"><div class="test-v2_author-row"><div class="test-v2_avatar">A</div><div><p class="test-v2_name">Marita</p><p class="test-v2_role">Operations Lead @ Asmuss</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">In just nine weeks, <span class="text-color-primary">Next World uncovered critical inefficiencies and clear opportunities for AI automation.</span> They delivered the clarity, direction, and practical roadmap we needed to drive real operational efficiency.</p><div class="test-v2_author-row"><div class="test-v2_avatar">A</div><div><p class="test-v2_name">Marita</p><p class="test-v2_role">Operations Lead @ Asmuss</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">Next World quickly understood our complex construction workflows and <span class="text-color-primary">identified where AI could improve efficiency. Their practical solutions addressed key bottlenecks,</span> and we're already seeing measurable improvements. Highly recommended.</p><div class="test-v2_author-row"><div class="test-v2_avatar">B</div><div><p class="test-v2_name">Josh</p><p class="test-v2_role">Director @ Ashcroft Homes</p></div></div></div><div class="test-v2_card test-v2_card--half"><div class="test-v2_author-row"><div class="test-v2_avatar">S</div><div><p class="test-v2_name">Ryan Torres</p><p class="test-v2_role">CTO @ StreamBase</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">We needed a system that could scale with our user base. <span class="text-color-primary">The AI pipeline handled 10x load without flinching.</span> Their team was responsive, proactive, and delivered exactly what they promised.</p><div class="test-v2_author-row"><div class="test-v2_avatar">L</div><div><p class="test-v2_name">Sarah Jenkins</p><p class="test-v2_role">Eng Director @ Linear</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">Finally, a partner that <span class="text-color-primary">understands the nuance of ethical AI compliance</span> and data sovereignty. They didn't just build a solution, they built trust across every department.</p><div class="test-v2_author-row"><div class="test-v2_avatar">O</div><div><p class="test-v2_name">Anna Wei</p><p class="test-v2_role">Data Lead @ OpenAI</p></div></div></div><div class="test-v2_card test-v2_card--half"><div class="test-v2_author-row"><div class="test-v2_avatar">A</div><div><p class="test-v2_name">Marita</p><p class="test-v2_role">Operations Lead @ Asmuss</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">In just nine weeks, <span class="text-color-primary">Next World uncovered critical inefficiencies and clear opportunities for AI automation.</span> They delivered the clarity, direction, and practical roadmap we needed to drive real operational efficiency.</p><div class="test-v2_author-row"><div class="test-v2_avatar">A</div><div><p class="test-v2_name">Marita</p><p class="test-v2_role">Operations Lead @ Asmuss</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">Next World quickly understood our complex construction workflows and <span class="text-color-primary">identified where AI could improve efficiency. Their practical solutions addressed key bottlenecks,</span> and we're already seeing measurable improvements. Highly recommended.</p><div class="test-v2_author-row"><div class="test-v2_avatar">B</div><div><p class="test-v2_name">Josh</p><p class="test-v2_role">Director @ Ashcroft Homes</p></div></div></div><div class="test-v2_card test-v2_card--half"><div class="test-v2_author-row"><div class="test-v2_avatar">S</div><div><p class="test-v2_name">Ryan Torres</p><p class="test-v2_role">CTO @ StreamBase</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">We needed a system that could scale with our user base. <span class="text-color-primary">The AI pipeline handled 10x load without flinching.</span> Their team was responsive, proactive, and delivered exactly what they promised.</p><div class="test-v2_author-row"><div class="test-v2_avatar">L</div><div><p class="test-v2_name">Sarah Jenkins</p><p class="test-v2_role">Eng Director @ Linear</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">Finally, a partner that <span class="text-color-primary">understands the nuance of ethical AI compliance</span> and data sovereignty. They didn't just build a solution, they built trust across every department.</p><div class="test-v2_author-row"><div class="test-v2_avatar">O</div><div><p class="test-v2_name">Anna Wei</p><p class="test-v2_role">Data Lead @ OpenAI</p></div></div></div></div></div></div></div></div></section><section class="section_stats"><div class="ai-grid-bg"></div><div class="padding-global padding-section-large"><div class="container-large position-relative"><div lumious-ticker-speed-mobile="10" lumious-ticker="true" lumious-ticker-speed="50" lumious-ticker-pause="false" class="stats-ticker"><div lumious-ticker-content="true" class="stats_wrapper"><div class="stat-wrap"><div class="stat-halo"></div><div class="stat-num">13.4m</div><p class="text-size-medium">views on YouTube</p></div><div class="stat-wrap"><div class="stat-halo"></div><div class="stat-num">90k</div><p class="text-size-medium">in our online community</p></div><div class="stat-wrap"><div class="stat-halo"></div><div class="stat-num">2,700+</div><p class="text-size-medium">empowered through<br/>our programs</p></div><div class="stat-wrap"><div class="stat-halo"></div><div class="stat-num">48+</div><p class="text-size-medium">successful client<br/>engagements</p></div><div class="stat-wrap"><div class="stat-halo"></div><div class="stat-num">11+</div><p class="text-size-medium">industries served</p></div></div></div><div class="ticker-gradient"></div><div class="ticker-gradient right"></div></div></div></section><section class="section_works"><div class="padding-global padding-section-large"><div class="container-large"><div class="works_header"><h2 class="works_title">Works</h2><a href="#" class="works_link">Go to Works <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></div><div class="works_divider"></div><div class="works_scroll"><div class="works_track"><a href="/case-study/transforming-aged-care-with-ai-driven-efficiency" class="works_card"><img src="https://cdn.prod.website-files.com/6952bda3347da6c20416f23c/695daa675761adbb77f95f18_care-connect.webp" alt="Care Connect" class="works_card-img" loading="lazy"/><div class="works_card-info"><div class="works_card-label">Case Study</div><p class="works_card-name">AI-Driven Aged Care Efficiency</p></div></a><a href="/case-study/building-new-zealands-first-ai-enabled-industrial-distributor" class="works_card"><img src="https://cdn.prod.website-files.com/6952bda3347da6c20416f23c/6952bdeeb07a70411de11ee3_asmuss-cs-img.webp" alt="Asmuss" class="works_card-img" loading="lazy"/><div class="works_card-info"><div class="works_card-label">Case Study</div><p class="works_card-name">NZ First AI-Enabled Distributor</p></div></a><a href="/case-study/transforming-basketball-operations-with-ai-powered-intelligence" class="works_card"><img src="https://cdn.prod.website-files.com/6952bda3347da6c20416f23c/696a79db0cabf82dcd701d5c_nba-card%20(1).webp" alt="NBA" class="works_card-img" loading="lazy"/><div class="works_card-info"><div class="works_card-label">Case Study</div><p class="works_card-name">AI-Powered Basketball Intelligence</p></div></a><a href="/case-study/transforming-aged-care-with-ai-driven-efficiency" class="works_card"><img src="https://cdn.prod.website-files.com/6952bda3347da6c20416f23c/695daa675761adbb77f95f18_care-connect.webp" alt="Care Connect" class="works_card-img" loading="lazy"/><div class="works_card-info"><div class="works_card-label">Case Study</div><p class="works_card-name">AI-Driven Aged Care Efficiency</p></div></a><a href="/case-study/building-new-zealands-first-ai-enabled-industrial-distributor" class="works_card"><img src="https://cdn.prod.website-files.com/6952bda3347da6c20416f23c/6952bdeeb07a70411de11ee3_asmuss-cs-img.webp" alt="Asmuss" class="works_card-img" loading="lazy"/><div class="works_card-info"><div class="works_card-label">Case Study</div><p class="works_card-name">NZ First AI-Enabled Distributor</p></div></a><a href="/case-study/transforming-basketball-operations-with-ai-powered-intelligence" class="works_card"><img src="https://cdn.prod.website-files.com/6952bda3347da6c20416f23c/696a79db0cabf82dcd701d5c_nba-card%20(1).webp" alt="NBA" class="works_card-img" loading="lazy"/><div class="works_card-info"><div class="works_card-label">Case Study</div><p class="works_card-name">AI-Powered Basketball Intelligence</p></div></a></div></div></div></div><section class="section_faqs"><div class="padding-global padding-section-large"><div class="container-large"><div class="flex-center small-gap"><h2 class="text-gradient">FAQs</h2><p class="text-size-large">You’ve got questions. We’ve got answers.</p></div><div class="faqs-wrapper"><div class="w-dyn-list"><div role="list" class="faq_components w-dyn-items"><div data-w-id="74d91e30-78f5-af45-06ae-9754e8716788" style="opacity:0" role="listitem" class="faq_accordion glass-card w-dyn-item"><div class="faq_heading"><div class="text-size-medium text-weight-normal">How is Next World AI different from every other AI company out there?</div><div class="faq_icon"><div class="faq_icon-code w-embed"><svg width="17" height="9" viewBox="0 0 17 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <div class="padding-global padding-section-large home-hero"><div class="container-large"><div class="hero"><div class="hero_content"><h1 data-w-id="f63cbc6a-01b0-c56e-95d4-065080c06ed6" style="opacity:0" class="h1-text-gradient">We don&#x27;t just talk AI. We deliver it.</h1><div data-w-id="8716bf85-fecd-32d4-d48b-33aeca32dd36" style="opacity:0" class="hero_subtitle"><p class="hero_subtitle-txt">We help companies identify AI opportunities that will actually transform their business, then we build it, deploy it, and train your team to use it.</p></div><div style="margin-top:2rem;display:flex;justify-content:center;opacity:0;animation:heroCtaIn 0.8s 1.2s forwards"><a href="https://cal.com/jordan-lee/ai-discovery-call" target="_blank" style="display:inline-flex;align-items:center;gap:0.6rem;padding:0.85rem 1.8rem;border:1px solid rgba(255,255,255,0.9);color:#fff;text-decoration:none;font-size:0.85rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;font-family:inherit;transition:background 0.3s;cursor:pointer" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Schedule a Consultation<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></div><style>@keyframes heroCtaIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}</style><div data-w-id="1d9166de-bbb9-41e8-0569-d812d4e9ee11" style="opacity:0" class="hero_logos"><div class="eyebrow-text">From next-gen startups to established enterprises:</div><div class="hero_logo-ticker"><div class="hero_logo-ticker_track"><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/696a790655dceaa830a60843_roosters.svg" loading="lazy" alt="Sydney Roosters logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03dbd8c8d94aaf995b6_barkbox-logo.webp" loading="lazy" alt="BarkBox logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c16eded30187d336bcd1_milwaukee-bucks-logo.webp" loading="lazy" alt="Milwaukee Bucks logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d37faf68620e73bd7_citation-logo.webp" loading="lazy" alt="Citation logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d9943a24358916f4a_dentops-logo.webp" loading="lazy" alt="DentOps logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03deade75d97387b263_asmuss-logo.webp" loading="lazy" alt="Asmuss logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/696a790655dceaa830a60843_roosters.svg" loading="lazy" alt="Sydney Roosters logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03dbd8c8d94aaf995b6_barkbox-logo.webp" loading="lazy" alt="BarkBox logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c16eded30187d336bcd1_milwaukee-bucks-logo.webp" loading="lazy" alt="Milwaukee Bucks logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d37faf68620e73bd7_citation-logo.webp" loading="lazy" alt="Citation logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d9943a24358916f4a_dentops-logo.webp" loading="lazy" alt="DentOps logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03deade75d97387b263_asmuss-logo.webp" loading="lazy" alt="Asmuss logo" class="hero_logo"/></div></div><div class="ticker-gradient hero"></div><div class="ticker-gradient right hero-right"></div></div></div></div></div></div></div><div lumious-ticker-speed-mobile="10" lumious-ticker="true" lumious-ticker-speed="50" lumious-ticker-pause="false" data-w-id="317fbfb2-7a35-f82b-f4a6-bd855abc3ff7" style="opacity:0" class="mobile-logo-ticker"><div lumious-ticker-content="true" class="hero_logo-row"><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/696a790655dceaa830a60843_roosters.svg" loading="eager" alt="Sydney Roosters logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03dbd8c8d94aaf995b6_barkbox-logo.webp" loading="eager" alt="BarkBox logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c16eded30187d336bcd1_milwaukee-bucks-logo.webp" loading="eager" alt="Milwaukee Bucks logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d37faf68620e73bd7_citation-logo.webp" loading="eager" alt="Citation logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d9943a24358916f4a_dentops-logo.webp" loading="eager" alt="DentOps logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03deade75d97387b263_asmuss-logo.webp" loading="eager" alt="Asmuss logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/696a790655dceaa830a60843_roosters.svg" loading="eager" alt="Sydney Roosters logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03dbd8c8d94aaf995b6_barkbox-logo.webp" loading="eager" alt="BarkBox logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c16eded30187d336bcd1_milwaukee-bucks-logo.webp" loading="eager" alt="Milwaukee Bucks logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d37faf68620e73bd7_citation-logo.webp" loading="eager" alt="Citation logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03d9943a24358916f4a_dentops-logo.webp" loading="eager" alt="DentOps logo" class="hero_logo"/></div><div class="hero_logo-wrap"><img src="https://cdn.prod.website-files.com/6952b3e7e5e2ef612d8856a2/6952c03deade75d97387b263_asmuss-logo.webp" loading="eager" alt="Asmuss logo" class="hero_logo"/></div></div><div class="ticker-gradient hero"></div><div class="ticker-gradient right hero-right"></div></div></section><section class="section_services"><div class="padding-global padding-section-large"><div class="container-large"><div class="services_layout"><div class="services_left"><h2 class="services_heading">Our Services</h2><div class="services_carousel" id="servicesCarousel"><div class="services_track" id="servicesTrack"><div class="service_item is-active" data-index="0" data-desc="We audit your workflows, data, and team structure to find the 5% of AI opportunities worth building, so you invest in what actually moves the needle."><div class="service_arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div><span class="service_item-text">AI Strategy</span></div><div class="service_item" data-index="1" data-desc="We build custom AI agents, automations, and tools that integrate directly into your existing systems, designed to work from day one."><div class="service_arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div><span class="service_item-text">Custom AI Development</span></div><div class="service_item" data-index="2" data-desc="We don't hand off and vanish. We train your people, monitor adoption, and refine until AI runs smoothly without us."><div class="service_arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div><span class="service_item-text">Training & Adoption</span></div><div class="service_item" data-index="3" data-desc="We identify repetitive tasks eating your team's time and replace them with intelligent automations that scale."><div class="service_arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div><span class="service_item-text">Workflow Automation</span></div><div class="service_item" data-index="4" data-desc="We turn your messy data into clear dashboards and AI-powered insights that help your team make faster, smarter decisions."><div class="service_arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div><span class="service_item-text">Data & Analytics</span></div><div class="service_item" data-index="5" data-desc="Purpose-built AI agents that handle specific business functions, from customer support to content creation to internal ops."><div class="service_arrow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div><span class="service_item-text">AI Agent Development</span></div></div></div></div><div class="services_right"><div class="services_description" id="servicesDesc">We audit your workflows, data, and team structure to find the 5% of AI opportunities worth building, so you invest in what actually moves the needle.</div><a href="https://cal.com/jordan-lee/ai-discovery-call" target="_blank" class="services_cta"><span>Become a Client</span><div class="services_cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></div></a><div class="services_counter"><span id="servicesCounter">01</span> / 06</div></div></div></div></div></section><section class="section_process"><div class="padding-global padding-section-large"><div class="container-large"><div class="flex-center"><div data-w-id="66c06ce1-dd09-0063-9768-dc8e148a732f" class="line-logo"><div data-w-id="f9327463-ea45-a91d-da63-1c2814a51f3c" class="gradient-line"></div><img src="./NW LOGO.png" alt="Next World" style="height:48px;width:auto;flex-shrink:0;"/><div data-w-id="4051c63f-7109-7662-3b31-5f419e27b69d" class="gradient-line flipped"></div></div><h2 class="text-gradient">Our days consist of three things...</h2></div><div class="process-hz"><div class="process-hz_card" data-step="1"><div class="process-hz_num">01</div><div class="process-hz_icon"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="30" cy="30" r="18" opacity="0.3"/><circle cx="30" cy="20" r="12" opacity="0.5"/><circle cx="22" cy="30" r="12" opacity="0.4"/><circle cx="38" cy="30" r="12" opacity="0.4"/><circle cx="30" cy="30" r="6" opacity="0.7"/></svg></div><h3 class="process-hz_title">Identify</h3><p class="process-hz_desc">We start by understanding how your team actually works, where time is lost, what slows things down. We find the 5% of opportunities worth building.</p><div class="process-hz_line"></div></div><div class="process-hz_card" data-step="2"><div class="process-hz_num">02</div><div class="process-hz_icon"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M30 10 L50 22 L50 38 L30 50 L10 38 L10 22Z" opacity="0.3"/><path d="M30 16 L46 26 L46 36 L30 46 L14 36 L14 26Z" opacity="0.5"/><path d="M30 22 L42 30 L42 34 L30 42 L18 34 L18 30Z" opacity="0.7"/></svg></div><h3 class="process-hz_title">Develop</h3><p class="process-hz_desc">We move quickly and build. Solutions that fit into your existing systems, built the right way, working exactly as they should from day one.</p><div class="process-hz_line"></div></div><div class="process-hz_card" data-step="3"><div class="process-hz_num">03</div><div class="process-hz_icon"><svg width="60" height="60" viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M15 42 L30 18 L45 42Z" opacity="0.5"/><circle cx="30" cy="35" r="4" opacity="0.7"/></svg></div><h3 class="process-hz_title">Adopt</h3><p class="process-hz_desc">We work side by side with your teams, training, fine-tuning, until it's not a project anymore. It's just how work gets done.</p></div></div><div class="flex-center margin-top margin-huge"><a href="#" class="button is-icon w-inline-block"><div>get in touch</div><div class="icon-1x1-xsmall w-embed"><svg width="auto" height="auto" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.666687 8.6665L4.66669 4.6665L0.666687 0.666504" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/></svg></div></a></div></div></div></section><section class="section_about"><div class="padding-global padding-section-large"><div class="container-large"><h2 class="about_heading text-gradient">Building AI before it was obvious.</h2><p class="about_intro text-size-large">Jordan was shipping AI-powered products before most developers had heard of ChatGPT. What started as a curiosity became a craft, and a track record of building software that actually works.</p><div class="about_profile"><div class="about_left-col"><div class="about_img-wrap"><img src="./jordan-lee.png" loading="lazy" alt="Jordan Lee" class="about_img"/></div><div class="about_works-wrap"><div class="about_works-container"><div class="about_works-icon"><div class="about_works-folder"><img src="./NW LOGO.png" alt="NW Logo" style="position:relative;z-index:4;width:28px;height:auto;opacity:0.5;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3))" /></div></div><div class="about_socials-tray"><a href="https://www.youtube.com/@jorddanlee" target="_blank" class="about_social-icon about_social--yt"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a><a href="https://www.linkedin.com/in/jorddanlee/" target="_blank" class="about_social-icon about_social--li"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a><a href="https://x.com/jorddanlee" target="_blank" class="about_social-icon about_social--x"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></div></div><span class="about_works-label">Socials</span></div></div><div class="about_profile-info"><div class="about_profile-header"><p class="about_name">Jordan Lee</p><p class="about_role">Co-Founder / Builder</p></div><div class="about_status"><span class="about_status-time"><span id="statusTime"></span> [TOR]</span><span class="about_status-msg"><span class="about_status-dot"></span>Waiting for your message</span></div><p class="text-size-medium">A self-taught developer and AI content creator, Jordan builds and ships AI products from scratch, and documents every step live on YouTube. He brings full transparency to what it actually takes to turn AI ideas into working software people pay for.</p><p class="text-size-medium">Jordan has shipped multiple production AI applications: full SaaS platforms, AI agent suites, and native desktop apps. He brings hands-on technical execution to every engagement, with a bias toward shipping fast and iterating on what's real.</p><div class="trusted_inline"><div class="trusted_label" style="text-align:left;margin-bottom:0.75rem;">Trusted By &amp; Featured In</div><div class="trusted_ticker"><div class="trusted_track"><span class="trusted_logo-text">n8n</span><span class="trusted_logo-text">skool</span><span class="trusted_logo-text trusted_logo-text--lg">APIFY</span><span class="trusted_logo-text">HOSTINGER</span><span class="trusted_logo-text">n8n</span><span class="trusted_logo-text">skool</span><span class="trusted_logo-text trusted_logo-text--lg">APIFY</span><span class="trusted_logo-text">HOSTINGER</span><span class="trusted_logo-text">n8n</span><span class="trusted_logo-text">skool</span><span class="trusted_logo-text trusted_logo-text--lg">APIFY</span><span class="trusted_logo-text">HOSTINGER</span><span class="trusted_logo-text">n8n</span><span class="trusted_logo-text">skool</span><span class="trusted_logo-text trusted_logo-text--lg">APIFY</span><span class="trusted_logo-text">HOSTINGER</span></div></div></div></div></div></div></div></section><section class="section_testimonials-v2"><div class="ai-grid-bg"></div><div class="padding-global padding-section-large"><div class="container-large"><div class="test-v2_layout"><div class="test-v2_left"><h2 class="test-v2_heading"><span class="text-style-muted">Hear it </span><strong>from our clients</strong></h2><a href="#" data-w-id="727ef4ca-8fcd-03b8-3ebb-6e285e5757e0" class="services_cta" style="margin-top: 2rem;"><span>Hear more stories</span><div class="services_cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></div></a></div><div class="test-v2_right"><div class="test-v2_scroll-track"><div class="test-v2_card test-v2_card--half"><div class="test-v2_author-row"><div class="test-v2_avatar">A</div><div><p class="test-v2_name">Marita</p><p class="test-v2_role">Operations Lead @ Asmuss</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">In just nine weeks, <span class="text-color-primary">Next World uncovered critical inefficiencies and clear opportunities for AI automation.</span> They delivered the clarity, direction, and practical roadmap we needed to drive real operational efficiency.</p><div class="test-v2_author-row"><div class="test-v2_avatar">A</div><div><p class="test-v2_name">Marita</p><p class="test-v2_role">Operations Lead @ Asmuss</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">Next World quickly understood our complex construction workflows and <span class="text-color-primary">identified where AI could improve efficiency. Their practical solutions addressed key bottlenecks,</span> and we're already seeing measurable improvements. Highly recommended.</p><div class="test-v2_author-row"><div class="test-v2_avatar">B</div><div><p class="test-v2_name">Josh</p><p class="test-v2_role">Director @ Ashcroft Homes</p></div></div></div><div class="test-v2_card test-v2_card--half"><div class="test-v2_author-row"><div class="test-v2_avatar">S</div><div><p class="test-v2_name">Ryan Torres</p><p class="test-v2_role">CTO @ StreamBase</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">We needed a system that could scale with our user base. <span class="text-color-primary">The AI pipeline handled 10x load without flinching.</span> Their team was responsive, proactive, and delivered exactly what they promised.</p><div class="test-v2_author-row"><div class="test-v2_avatar">L</div><div><p class="test-v2_name">Sarah Jenkins</p><p class="test-v2_role">Eng Director @ Linear</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">Finally, a partner that <span class="text-color-primary">understands the nuance of ethical AI compliance</span> and data sovereignty. They didn't just build a solution, they built trust across every department.</p><div class="test-v2_author-row"><div class="test-v2_avatar">O</div><div><p class="test-v2_name">Anna Wei</p><p class="test-v2_role">Data Lead @ OpenAI</p></div></div></div><div class="test-v2_card test-v2_card--half"><div class="test-v2_author-row"><div class="test-v2_avatar">A</div><div><p class="test-v2_name">Marita</p><p class="test-v2_role">Operations Lead @ Asmuss</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">In just nine weeks, <span class="text-color-primary">Next World uncovered critical inefficiencies and clear opportunities for AI automation.</span> They delivered the clarity, direction, and practical roadmap we needed to drive real operational efficiency.</p><div class="test-v2_author-row"><div class="test-v2_avatar">A</div><div><p class="test-v2_name">Marita</p><p class="test-v2_role">Operations Lead @ Asmuss</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">Next World quickly understood our complex construction workflows and <span class="text-color-primary">identified where AI could improve efficiency. Their practical solutions addressed key bottlenecks,</span> and we're already seeing measurable improvements. Highly recommended.</p><div class="test-v2_author-row"><div class="test-v2_avatar">B</div><div><p class="test-v2_name">Josh</p><p class="test-v2_role">Director @ Ashcroft Homes</p></div></div></div><div class="test-v2_card test-v2_card--half"><div class="test-v2_author-row"><div class="test-v2_avatar">S</div><div><p class="test-v2_name">Ryan Torres</p><p class="test-v2_role">CTO @ StreamBase</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">We needed a system that could scale with our user base. <span class="text-color-primary">The AI pipeline handled 10x load without flinching.</span> Their team was responsive, proactive, and delivered exactly what they promised.</p><div class="test-v2_author-row"><div class="test-v2_avatar">L</div><div><p class="test-v2_name">Sarah Jenkins</p><p class="test-v2_role">Eng Director @ Linear</p></div></div></div><div class="test-v2_card"><p class="test-v2_quote">Finally, a partner that <span class="text-color-primary">understands the nuance of ethical AI compliance</span> and data sovereignty. They didn't just build a solution, they built trust across every department.</p><div class="test-v2_author-row"><div class="test-v2_avatar">O</div><div><p class="test-v2_name">Anna Wei</p><p class="test-v2_role">Data Lead @ OpenAI</p></div></div></div></div></div></div></div></div></section><section class="section_stats"><div class="ai-grid-bg"></div><div class="padding-global padding-section-large"><div class="container-large position-relative"><div lumious-ticker-speed-mobile="10" lumious-ticker="true" lumious-ticker-speed="50" lumious-ticker-pause="false" class="stats-ticker"><div lumious-ticker-content="true" class="stats_wrapper"><div class="stat-wrap"><div class="stat-halo"></div><div class="stat-num">13.4m</div><p class="text-size-medium">views on YouTube</p></div><div class="stat-wrap"><div class="stat-halo"></div><div class="stat-num">90k</div><p class="text-size-medium">in our online community</p></div><div class="stat-wrap"><div class="stat-halo"></div><div class="stat-num">2,700+</div><p class="text-size-medium">empowered through<br/>our programs</p></div><div class="stat-wrap"><div class="stat-halo"></div><div class="stat-num">48+</div><p class="text-size-medium">successful client<br/>engagements</p></div><div class="stat-wrap"><div class="stat-halo"></div><div class="stat-num">11+</div><p class="text-size-medium">industries served</p></div></div></div><div class="ticker-gradient"></div><div class="ticker-gradient right"></div></div></div></section><section class="section_works"><div class="padding-global padding-section-large"><div class="container-large"><div class="works_header"><h2 class="works_title">Works</h2><a href="#" class="works_link">Go to Works <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></div><div class="works_divider"></div><div class="works_scroll"><div class="works_track"><a href="/case-study/transforming-aged-care-with-ai-driven-efficiency" class="works_card"><img src="https://cdn.prod.website-files.com/6952bda3347da6c20416f23c/695daa675761adbb77f95f18_care-connect.webp" alt="Care Connect" class="works_card-img" loading="lazy"/><div class="works_card-info"><div class="works_card-label">Case Study</div><p class="works_card-name">AI-Driven Aged Care Efficiency</p></div></a><a href="/case-study/building-new-zealands-first-ai-enabled-industrial-distributor" class="works_card"><img src="https://cdn.prod.website-files.com/6952bda3347da6c20416f23c/6952bdeeb07a70411de11ee3_asmuss-cs-img.webp" alt="Asmuss" class="works_card-img" loading="lazy"/><div class="works_card-info"><div class="works_card-label">Case Study</div><p class="works_card-name">NZ First AI-Enabled Distributor</p></div></a><a href="/case-study/transforming-basketball-operations-with-ai-powered-intelligence" class="works_card"><img src="https://cdn.prod.website-files.com/6952bda3347da6c20416f23c/696a79db0cabf82dcd701d5c_nba-card%20(1).webp" alt="NBA" class="works_card-img" loading="lazy"/><div class="works_card-info"><div class="works_card-label">Case Study</div><p class="works_card-name">AI-Powered Basketball Intelligence</p></div></a><a href="/case-study/transforming-aged-care-with-ai-driven-efficiency" class="works_card"><img src="https://cdn.prod.website-files.com/6952bda3347da6c20416f23c/695daa675761adbb77f95f18_care-connect.webp" alt="Care Connect" class="works_card-img" loading="lazy"/><div class="works_card-info"><div class="works_card-label">Case Study</div><p class="works_card-name">AI-Driven Aged Care Efficiency</p></div></a><a href="/case-study/building-new-zealands-first-ai-enabled-industrial-distributor" class="works_card"><img src="https://cdn.prod.website-files.com/6952bda3347da6c20416f23c/6952bdeeb07a70411de11ee3_asmuss-cs-img.webp" alt="Asmuss" class="works_card-img" loading="lazy"/><div class="works_card-info"><div class="works_card-label">Case Study</div><p class="works_card-name">NZ First AI-Enabled Distributor</p></div></a><a href="/case-study/transforming-basketball-operations-with-ai-powered-intelligence" class="works_card"><img src="https://cdn.prod.website-files.com/6952bda3347da6c20416f23c/696a79db0cabf82dcd701d5c_nba-card%20(1).webp" alt="NBA" class="works_card-img" loading="lazy"/><div class="works_card-info"><div class="works_card-label">Case Study</div><p class="works_card-name">AI-Powered Basketball Intelligence</p></div></a></div></div></div></div><section class="section_faqs"><div class="padding-global padding-section-large"><div class="container-large"><div class="flex-center small-gap"><h2 class="text-gradient">FAQs</h2><p class="text-size-large">You’ve got questions. We’ve got answers.</p></div><div class="faqs-wrapper"><div class="w-dyn-list"><div role="list" class="faq_components w-dyn-items"><div data-w-id="74d91e30-78f5-af45-06ae-9754e8716788" style="opacity:0" role="listitem" class="faq_accordion glass-card w-dyn-item"><div class="faq_heading"><div class="text-size-medium text-weight-normal">How is Next World AI different from every other AI company out there?</div><div class="faq_icon"><div class="faq_icon-code w-embed"><svg width="17" height="9" viewBox="0 0 17 9" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M0.999955 1.00013L8.27268 7.36377L15.5454 1.00013" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg></div></div></div><div class="faq_body"><div class="faq_answers"><div class="w-richtext"><p>We’re workflow specialists first, AI specialists second. We start by understanding how your teams actually work, then reimagine what’s possible with AI - without pushing any single tool or platform. We are tool-agnostic, industry-agnostic, but results-obsessed.</p></div></div></div></div><div data-w-id="74d91e30-78f5-af45-06ae-9754e8716788" style="opacity:0" role="listitem" class="faq_accordion glass-card w-dyn-item"><div class="faq_heading"><div class="text-size-medium text-weight-normal">How do I know if we’re ready for AI?</div><div class="faq_icon"><div class="faq_icon-code w-embed"><svg width="17" height="9" viewBox="0 0 17 9" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M0.999955 1.00013L8.27268 7.36377L15.5454 1.00013" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -2297,5 +2577,94 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 });
+</script>
+
+<script>
+(function() {
+  var canvas = document.getElementById('preloaderCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var W, H;
+
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+
+  var particles = [];
+  var cx = W / 2, cy = H / 2;
+  var running = true;
+  var frame = 0;
+
+  // Spawn particles when logo build completes (~0.6s)
+  setTimeout(function() {
+    for (var i = 0; i < 60; i++) {
+      var angle = Math.random() * Math.PI * 2;
+      var speed = 1.5 + Math.random() * 3.5;
+      particles.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 0.6 + Math.random() * 2,
+        alpha: 0.3 + Math.random() * 0.5,
+        decay: 0.01 + Math.random() * 0.012,
+        delay: Math.random() * 10
+      });
+    }
+    frame = 0;
+    requestAnimationFrame(draw);
+  }, 300);
+
+  function draw() {
+    if (!running) return;
+    ctx.clearRect(0, 0, W, H);
+    frame++;
+    var alive = false;
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      if (frame < p.delay) { alive = true; continue; }
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.985;
+      p.vy *= 0.985;
+      p.alpha -= p.decay;
+      if (p.alpha <= 0) continue;
+      alive = true;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(12,196,129,' + p.alpha.toFixed(3) + ')';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - p.vx * 4, p.y - p.vy * 4);
+      ctx.strokeStyle = 'rgba(12,196,129,' + (p.alpha * 0.3).toFixed(3) + ')';
+      ctx.lineWidth = p.size * 0.4;
+      ctx.stroke();
+    }
+    if (alive) requestAnimationFrame(draw);
+  }
+
+  // Remove clip-path after build animation finishes (0.8s)
+  setTimeout(function() {
+    var logo = document.querySelector('.preloader-logo');
+    if (logo) {
+      logo.style.clipPath = 'none';
+      logo.style.webkitClipPath = 'none';
+    }
+  }, 550);
+
+  // Dismiss after build completes
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      running = false;
+      document.getElementById('preloader').classList.add('done');
+    }, 1000);
+  });
+})();
 </script>
 </body></html>
